@@ -38,8 +38,7 @@ static void main_window_load(Window *window) {
   Layer *window_layer = window_get_root_layer(s_main_window);
   GRect bounds = layer_get_frame(window_layer);
 #ifdef PBL_ROUND
-  bounds.origin.y += INSET;
-  bounds.size.h -= INSET;
+  bounds = grect_inset(bounds, GEdgeInsets(INSET));
 #endif
   s_text_layer = text_layer_create(bounds);
   text_layer_set_text(s_text_layer,

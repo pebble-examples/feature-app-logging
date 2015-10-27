@@ -1,6 +1,10 @@
 #include "pebble.h"
 
 #define REPEAT_INTERVAL_MS 1000
+#ifdef PBL_ROUND
+#define INSET 8
+#endif
+
 
 static Window *s_main_window;
 static TextLayer *s_text_layer;
@@ -10,7 +14,8 @@ static void select_single_click_handler(ClickRecognizerRef recognizer, void *con
 }
 
 static void select_multi_click_handler(ClickRecognizerRef recognizer, void *context) {
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Multi-Click: %u clicks", click_number_of_clicks_counted(recognizer));
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Multi-Click: %u clicks", 
+          click_number_of_clicks_counted(recognizer));
 }
 
 static void select_long_click_handler(ClickRecognizerRef recognizer, void *context) {
@@ -22,15 +27,19 @@ static void select_long_click_release_handler(ClickRecognizerRef recognizer, voi
 }
 
 static void config_provider(void *context) {
-  window_single_repeating_click_subscribe(BUTTON_ID_SELECT, REPEAT_INTERVAL_MS, select_single_click_handler);
+  window_single_repeating_click_subscribe(BUTTON_ID_SELECT, REPEAT_INTERVAL_MS, 
+                                          select_single_click_handler);
   window_multi_click_subscribe(BUTTON_ID_SELECT, 2, 10, 0, true, select_multi_click_handler);
-  window_long_click_subscribe(BUTTON_ID_SELECT, 700, select_long_click_handler, select_long_click_release_handler);
+  window_long_click_subscribe(BUTTON_ID_SELECT, 700, select_long_click_handler, 
+                              select_long_click_release_handler);
 }
 
 static void main_window_load(Window *window) {
   Layer *window_layer = window_get_root_layer(s_main_window);
   GRect bounds = layer_get_frame(window_layer);
-  
+#ifdef PBL_ROUND
+  bounds = grect_inset(bounds, GEdgeInsets(INSET));
+#endif
   s_text_layer = text_layer_create(bounds);
   text_layer_set_text(s_text_layer,
       "Press the select button to try out different clicks and watch your Bluetooth logs");
@@ -38,6 +47,9 @@ static void main_window_load(Window *window) {
   text_layer_set_font(s_text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
   text_layer_set_text_alignment(s_text_layer, GTextAlignmentCenter);
   layer_add_child(window_layer, text_layer_get_layer(s_text_layer));
+#ifdef PBL_ROUND
+  text_layer_enable_screen_text_flow_and_paging(s_text_layer, INSET);
+#endif
 }
 
 static void main_window_unload(Window *window) {
